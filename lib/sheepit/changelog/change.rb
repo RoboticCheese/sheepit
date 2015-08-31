@@ -55,7 +55,7 @@ module Sheepit
           end
         end
         res = lines.join("\n  ")
-        '- ' << res
+        "#{BULLET} #{res}"
       end
     end
   end
