@@ -7,7 +7,31 @@ describe Sheepit::Changelog::Changeset do
   let(:changes) { nil }
   let(:changeset) { described_class.new(version, date, changes) }
 
-  describe '.initialize' do
+  describe '.from_str' do
+    let(:body) do
+      <<-EOH.gsub(/^ +/, '')
+        v0.1.0 (2015-09-01)
+        -------------------
+        - Do some things
+        - Do some other things
+      EOH
+    end
+    let(:changeset) { described_class.from_str(body) }
+
+    it 'returns a Changeset object' do
+      expect(changeset).to be_an_instance_of(described_class)
+    end
+
+    it 'correctly parses the changeset body' do
+      c = changeset
+      expect(c.version).to eq('0.1.0')
+      expect(c.date).to eq('2015-09-01')
+      expect(c.changes.length).to eq(2)
+      expect(c.changes[0].description).to eq('Do some things')
+    end
+  end
+
+  describe '#initialize' do
     let(:version) { '1.2.3' }
     let(:date) { '2015-10-21' }
     let(:changes) { ['Some stuff', 'Some more stuff', 'Even more stuff'] }

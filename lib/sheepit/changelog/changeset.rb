@@ -28,6 +28,22 @@ module Sheepit
     #
     # @author Jonathan Hartman <j@hartman.io>
     class Changeset
+      class << self
+        #
+        # Initialize a new Changeset object based on a string.
+        #
+        # @param body [String] the changeset body to parse
+        #
+        # @return [Sheepit::Changelog::Changeset] the new object
+        #
+        def from_str(body)
+          version = body.split("\n")[0].split[0][1..-1]
+          date = body.split("\n")[0].split[1][1..-2]
+          changes = body.split("\n")[2..-1].map { |l| l[2..-1] }
+          self.new(version, date, changes)
+        end
+      end
+
       attr_reader :version, :date, :changes
 
       #
@@ -35,9 +51,10 @@ module Sheepit
       #
       # @param version [String] a version string
       # @option date [String] a date string (defaults to today)
-      # @option changes [Array] an array of change strings (defaults to empty)
+      # @option changes [Array<String>] an array of change strings (defaults to
+      #                                 empty)
       #
-      # @return [Changeset] the new Changeset object
+      # @return [Sheepit::Changelog::Changeset] the new object
       #
       def initialize(version, date, changes)
         @version = version
