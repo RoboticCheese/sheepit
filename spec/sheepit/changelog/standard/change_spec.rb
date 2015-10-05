@@ -1,7 +1,7 @@
-require_relative '../../spec_helper'
-require_relative '../../../lib/sheepit/changelog/change'
+require_relative '../../../spec_helper'
+require_relative '../../../../lib/sheepit/changelog/standard/change'
 
-describe Sheepit::Changelog::Change do
+describe Sheepit::Changelog::Standard::Change do
   let(:description) { 'a new change' }
   let(:change) { described_class.new(description) }
 

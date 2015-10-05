@@ -1,13 +1,13 @@
 require_relative '../../spec_helper'
-require_relative '../../../lib/sheepit/changelog/changeset'
+require_relative '../../../../lib/sheepit/changelog/standard/changeset'
 
-describe Sheepit::Changelog::Changeset do
+describe Sheepit::Changelog::Standard::Changeset do
   let(:version) { nil }
   let(:date) { nil }
   let(:changes) { nil }
   let(:changeset) { described_class.new(version, date, changes) }
 
-  describe '.from_str' do
+  describe '.from_s' do
     let(:body) do
       <<-EOH.gsub(/^ +/, '')
         v0.1.0 (2015-09-01)
@@ -16,7 +16,7 @@ describe Sheepit::Changelog::Changeset do
         - Do some other things
       EOH
     end
-    let(:changeset) { described_class.from_str(body) }
+    let(:changeset) { described_class.from_s(body) }
 
     it 'returns a Changeset object' do
       expect(changeset).to be_an_instance_of(described_class)
