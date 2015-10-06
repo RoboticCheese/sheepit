@@ -17,52 +17,25 @@
 # limitations under the License.
 #
 
-require_relative 'changelog/changeset'
-
 module Sheepit
-  # A base changelog class
+  # The changelog component control's a project's changelog file, reading and
+  # writing its contents, with different formats of changelogs supported by
+  # different plugins.
   #
   # @author Jonathan Hartman <j@hartman.io>
   class Changelog
     class << self
+      # Return a new instance of a changelog class for a given plugin.
       #
-      # Initialize a new Changelog object based on a file.
-      #
-      # @param path [String] the path to a changelog file
-      #
-      # @return [Changelog] a Changelog object based on the contents of a file
-      #
-      def from_file(path = 'CHANGELOG.md')
-        from_str(File.open(File.expand_path(path)).read)
+      # @param plugin [Symbol] a driver plugin
+      # @return [Changelog::Base] a new changelog instance for the given plugin
+      def for_plugin(plugin, config = {})
+        first_load = require("sheepit/changelog/#{plugin}")
+        klass = const_get(Thor::Util.camel_calse(plugin))
+        object = klass.new(config)
+        object.verify_dependencies if first_load
+        object
       end
-
-      #
-      # Initialize a new Changelog object based on a string.
-      #
-      # @param body [String] the changelog body to parse
-      #
-      # @return [Changelog] a Changelog object based on a string
-      #
-      def from_str(body)
-        title = body.lines[0].strip
-        changesets = body.split("\n\n")[1..-1].map { |c| Changeset.from_str(c) }
-        self.new(title, changesets)
-      end
-    end
-
-    attr_reader :title, :changesets
-
-    #
-    # Initialize a new Changelog object.
-    #
-    # @param title [String] the project title
-    # @param changesets [Array<Changeset] the project changesets
-    #
-    # @return [Changelog] a Changelog object based on a string
-    #
-    def initialize(title, changesets)
-      @title = title
-      @changesets = changesets
     end
   end
 end
