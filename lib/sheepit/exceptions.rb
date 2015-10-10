@@ -21,10 +21,19 @@ module Sheepit
   class Exceptions
     # A custom exception class for a missing required configuration key.
     #
-    # @author Jonathan Hartman <j@hartman.io
+    # @author Jonathan Hartman <j@hartman.io>
     class ConfigMissing < StandardError
       def initialize(key)
-        super("`#{key}` config key cannot be nil!")
+        super("`#{key}` config key cannot be nil")
+      end
+    end
+
+    # A custom exception class for an invalid configuration key.
+    #
+    # @author Jonathan Hartman <j@hartman.io>
+    class InvalidConfig < StandardError
+      def initialize(key)
+        super("`#{key}` is not a valid config key")
       end
     end
   end

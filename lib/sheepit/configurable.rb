@@ -38,44 +38,92 @@ module Sheepit
     #
     # Initialize based on a config hash and save it as an instance variable.
     #
+    # @param config [Hash] an input hash of config overrides
+    #
     def initialize(config = {})
-      @config = build_config(config || {})
+      build_config!(config || {})
+      validate_config!
     end
 
     #
-    # Perform validation against a configuration hash and then assign any
-    # default values to non-existent keys.
+    # Make config attributes accessible via indices on the object.
     #
-    # @param config [Hash] a configuration Hash
+    # @param attr [Symbol] the attribute to look up
     #
-    def build_config(config)
-      validate_config(config)
-      self.class.defaults.each { |k, v| config[k] ||= v }
+    # @return [Object] the config item at that attribute key
+    #
+    def [](attr)
+      config[attr]
+    end
+
+    #
+    # And make each config key also accessible as a method.
+    #
+    # (see Class#method_missing)
+    #
+    def method_missing(name, *args, &block)
+      config[name] || super
+    end
+
+    #
+    # Take an input configuration hash and merge it with all config defaults
+    # to build a final config hash for the configurable object.
+    #
+    # @param config [Hash] a hash of configuration overrides to build on
+    #
+    def build_config!(config)
+      @config = config
+      # First, go over every default with a static value...
+      self.class.defaults.each { |k, v| @config[k] ||= v unless v.is_a?(Proc) }
+      # Then yield to every default that's a Proc, potentially based on other
+      # defaults.
+      self.class.defaults.each do |k, v|
+        @config[k] ||= v.call(self) if v.is_a?(Proc)
+      end
+      @config
+    end
+
+    #
+    # Iterate over any config validation that needs to be done for the built
+    # config hash.
+    #
+    # @raise [ConfigError] if a config key validation fails
+    #
+    def validate_config!
+      config.each do |k, _|
+        if !(self.class.defaults.keys + self.class.required).include?(k)
+          fail(Exceptions::InvalidConfig, k)
+        end
+      end
+      self.class.required.each do |r|
+        fail(Exceptions::ConfigMissing, r) if config[r].nil?
+      end
       config
     end
 
     #
-    # Iterate over any config validation that needs to be done and do it to a
-    # provided config Hash.
+    # Return the opject's internal configuration hash.
     #
-    # @param config [Hash] a configuration Hash
-    #
-    # @raise [ConfigError] if a config key validation fails
-    #
-    def validate_config(config)
-      self.class.required.each do |r|
-        fail(Exceptions::ConfigMissing, r) if config[r].nil?
-      end
-      self
-    end
-
     # @return [Hash] a configuration Hash
-    attr_reader :config
+    #
+    def config
+      @config ||= {}
+    end
 
     # The subset of methods to be used, DSL-style, in a Configurable class.
     #
-    # @author Jonathan Hartman <j@hartman.io>
+    # @author Jonathan Hartman <jonathan.hartman@socrata.com>
     module ClassMethods
+      #
+      # Declare a set of config keys that are mutually exclusive and cannot
+      # be overridden in the same Configurable object.
+      #
+      # @param [Array<Symbol>] an array of config keys
+      #
+      def exclusive_config(*args)
+        exclusives << args
+      end
+
       #
       # Declare a config key that is required (i.e. must be non-nil) for use
       # at validation time.
@@ -90,17 +138,28 @@ module Sheepit
       # Declare a default value for a specified config key.
       #
       # @param key [Symbol] a configuration key to assign a default to
-      # @param value the value to assign to this config key
+      # @param value [Object, nil] the value to assign to this config key
+      # @param block [Proc] a block to yield the object to
       #
-      def default_config(key, value)
-        defaults[key] = value
+      def default_config(key, value = nil, &block)
+        defaults[key] = block_given? ? block : value
+      end
+
+      #
+      # An array for holding sets of config keys that are mutually exclusive
+      # and cannot both be set by the user.
+      #
+      # @return [Array<Array>] an array of arrays of config keys
+      #
+      def exclusives
+        @exclusives ||= []
       end
 
       #
       # An Array in which we can store config keys that are required, for the
       # validation phase to iterate over.
       #
-      # @return [Array] a list of config keys
+      # @return [Array<Symbol>] a list of config keys
       #
       def required
         @required ||= []

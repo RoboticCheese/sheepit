@@ -37,6 +37,13 @@ describe Sheepit::Configurable do
     end
 
     context 'a populated config param' do
+      let(:test_class) do
+        Class.new do
+          include Sheepit::Configurable
+          default_config :thing, nil
+        end
+      end
+
       let(:config) { { thing: 'stuff' } }
 
       it 'saves the config hash' do
@@ -45,7 +52,7 @@ describe Sheepit::Configurable do
     end
   end
 
-  describe '#build_config' do
+  describe '#build_config!' do
     let(:test_class) do
       Class.new do
         include Sheepit::Configurable
@@ -54,20 +61,11 @@ describe Sheepit::Configurable do
     end
     let(:config) { {} }
 
-    before(:each) do
-      allow(test_obj).to receive(:validate_config)
-    end
-
-    it 'validates the config' do
-      expect(test_obj).to receive(:validate_config).with(config)
-      test_obj.build_config(config)
-    end
-
     context 'no overridden defaults' do
       let(:config) { {} }
 
       it 'returns the defaults' do
-        expect(test_obj.build_config(config)[:key1]).to eq('value1')
+        expect(test_obj.build_config!(config)[:key1]).to eq('value1')
       end
     end
 
@@ -75,12 +73,12 @@ describe Sheepit::Configurable do
       let(:config) { { key1: 'othervalue' } }
 
       it 'returns the overrides' do
-        expect(test_obj.build_config(config)[:key1]).to eq('othervalue')
+        expect(test_obj.build_config!(config)[:key1]).to eq('othervalue')
       end
     end
   end
 
-  describe '#validate_config' do
+  describe '#validate_config!' do
     let(:test_class) do
       Class.new do
         include Sheepit::Configurable
@@ -92,7 +90,7 @@ describe Sheepit::Configurable do
       let(:config) { { thing1: 'test' } }
 
       it 'passes' do
-        expect(test_obj.validate_config(config)).to eq(test_obj)
+        expect(test_obj.validate_config!).to eq(config)
       end
     end
 
@@ -101,7 +99,16 @@ describe Sheepit::Configurable do
 
       it 'raises an error' do
         expected = Sheepit::Exceptions::ConfigMissing
-        expect { test_obj.validate_config(config) }.to raise_error(expected)
+        expect { test_obj.validate_config!(config) }.to raise_error(expected)
+      end
+    end
+
+    context 'an invalid config with an unrecognized config key' do
+      let(:config) { { thing2: 'bad' } }
+
+      it 'raises an error' do
+        expected = Sheepit::Exceptions::InvalidConfig
+        expect { test_obj.validate_config!(config) }.to raise_error(expected)
       end
     end
   end

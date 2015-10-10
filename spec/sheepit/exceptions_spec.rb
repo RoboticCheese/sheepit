@@ -5,7 +5,16 @@ describe Sheepit::Exceptions do
   describe Sheepit::Exceptions::ConfigMissing do
     describe '.initialize' do
       it 'complains about a missing key' do
-        expected = '`key1` config key cannot be nil!'
+        expected = '`key1` config key cannot be nil'
+        expect(described_class.new(:key1).message).to eq(expected)
+      end
+    end
+  end
+
+  describe Sheepit::Exceptions::InvalidConfig do
+    describe '.initialize' do
+      it 'complains about an invalid key' do
+        expected = '`key1` is not a valid config key'
         expect(described_class.new(:key1).message).to eq(expected)
       end
     end
