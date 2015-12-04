@@ -1,0 +1,7 @@
+[package]
+name = "sheepit"
+version = "0.0.1"
+authors = ["Jonathan Hartman <j@hartman.io>"]
+
+[dependencies]
+log = "*"
