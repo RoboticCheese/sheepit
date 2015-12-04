@@ -1,10 +1,38 @@
+//
+// Author:: Jonathan Hartman (<j@p4nt5.com>)
+// License:: Apache License, Version 2.0
+//
+// Copyright (C) 2015, Jonathan Hartman
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 use std::fmt;
 
+/// A struct to represent a single changelog item.
 pub struct Change {
     body: String,
 }
 
 impl Change {
+    /// Constructs a new `Change`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use changelog::change::Change;
+    /// let c = Change::new("The body of a change");
+    /// ```
     pub fn new(body: &str) -> Change {
         Change {
             body: body.to_string(),
@@ -13,6 +41,16 @@ impl Change {
 }
 
 impl fmt::Display for Change {
+    /// Formats a change into a bullet point for a changelog file with a max
+    /// line length of 79 characters.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use changelog::change::Change;
+    /// let c = Change::new("The body of a change");
+    /// println!("{}", c);
+    /// ```
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut lines: Vec<String> = Vec::new();
         let mut next_line = String::new();
@@ -28,7 +66,6 @@ impl fmt::Display for Change {
             next_line.push_str(word);
         }
         lines.push(next_line);
-        //let res = lines.join(" ");
         write!(f, "{}", lines.join("\n"))
     }
 }
